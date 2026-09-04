@@ -407,7 +407,7 @@ class DOMJudgeUploader(plus_commands.UploaderBase):
         contest_id = problem.project.domjudge_contest_id
 
         res = requests.get(
-            base_api_url + 'contests/%d/problems' % contest_id,
+            base_api_url + 'contests/%s/problems' % str(contest_id),
             auth=auth)
         if res.status_code != 200:
             ui.errors.Error(
@@ -415,7 +415,7 @@ class DOMJudgeUploader(plus_commands.UploaderBase):
             yield False
 
         possible_problems = [
-            p for p in res.json() if p['externalid'] == problem.name]
+            p for p in res.json() if p['id'] == problem.name]
         new_problem = len(possible_problems) == 0
 
         data = {}
@@ -427,7 +427,7 @@ class DOMJudgeUploader(plus_commands.UploaderBase):
         ui.console.PrintAction(
             'UPLOAD', problem, packed_file, progress=True)
         with open(packed_file, 'rb') as f:
-            request_url = base_api_url + 'contests/%d/problems' % contest_id
+            request_url = base_api_url + 'contests/%s/problems' % str(contest_id)
             if not dryrun:
                 res = requests.post(
                     request_url,
@@ -472,7 +472,7 @@ class DOMJudgeSubmitter(plus_commands.SubmitterBase):
 
         # Get the problem id from problems list.
         res = requests.get(
-            base_api_url + 'contests/%d/problems' % contest_id,
+            base_api_url + 'contests/%s/problems' % str(contest_id),
             auth=auth)
         if res.status_code != 200:
             ui.errors.Error(
@@ -480,7 +480,7 @@ class DOMJudgeSubmitter(plus_commands.SubmitterBase):
             yield False
 
         possible_problems = [
-            p for p in res.json() if p['externalid'] == solution.problem.name]
+            p for p in res.json() if p['id'] == solution.problem.name]
         if len(possible_problems) != 1:
             ui.errors.Error(solution, 'Problem does not exist.')
             yield False
@@ -498,7 +498,7 @@ class DOMJudgeSubmitter(plus_commands.SubmitterBase):
             solution.src_dir, solution.code.src_name)
         with open(source_code_file, 'rb') as f:
             res = requests.post(
-                base_api_url + 'contests/%d/submissions' % contest_id,
+                base_api_url + 'contests/%s/submissions' % str(contest_id),
                 data={'problem': problem_id, 'language': lang_name},
                 files={'code': f},
                 auth=auth)
@@ -515,7 +515,7 @@ class DOMJudgeSubmitter(plus_commands.SubmitterBase):
         # Poll until judge completes.
         while True:
             res = requests.get(
-                base_api_url + 'contests/%d/judgements' % contest_id,
+                base_api_url + 'contests/%s/judgements' % str(contest_id),
                 params={'submission_id': submission_id},
                 auth=auth)
             if res.status_code != 200:
